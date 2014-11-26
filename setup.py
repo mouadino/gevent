@@ -9,6 +9,8 @@ import traceback
 from os.path import join, abspath, basename, dirname
 from glob import glob
 
+from distutils.dist import Distribution
+
 PYPY = hasattr(sys, 'pypy_version_info')
 
 try:
@@ -303,9 +305,14 @@ else:
                              sources=["gevent/gevent._semaphore.c"]),
                    Extension(name="gevent._util",
                              sources=["gevent/gevent._util.c"])]
-    install_requires = ['greenlet']
+    install_requires = ['greenlet', 'cython']
     include_package_data = False
-    run_make = True
+    # WORKAROUND: Taken from https://github.com/Unidata/netcdf4-python/pull/257/files
+    if any('--' + opt in sys.argv for opt in Distribution.display_option_names +
+        ['help-commands', 'help']) or sys.argv[1] == 'egg_info':
+        run_make = False
+    else:
+        run_make = True
 
 
 def run_setup(ext_modules, run_make):
